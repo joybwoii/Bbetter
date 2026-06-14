@@ -13,6 +13,7 @@ interface ProductFormProps {
 export default function ProductForm({ initialData, categories, isEdit = false }: ProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [imageSource, setImageSource] = useState<'upload' | 'url'>('upload');
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
@@ -69,15 +70,68 @@ export default function ProductForm({ initialData, categories, isEdit = false }:
     setLoading(false);
 
     if (result.success) {
-      router.push('/admin/products');
-      router.refresh();
+      setShowSuccessPopup(true);
     } else {
       alert(result.error || 'Something went wrong');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.panelCard} style={{ maxWidth: '800px' }}>
+    <>
+      {showSuccessPopup && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{
+            background: 'var(--background)', padding: '2rem', borderRadius: '1rem',
+            maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{
+              width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(34,197,94,0.1)',
+              color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 1rem'
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>Product Saved!</h3>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+              Your product has been successfully {isEdit ? 'updated' : 'added'} to the catalog.
+            </p>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button 
+                type="button" 
+                className="btn btn-outline" 
+                onClick={() => {
+                  setShowSuccessPopup(false);
+                  if (!isEdit) {
+                    setFormData(prev => ({ ...prev, name: '', description: '', price: '', mrp: '', stock: '', image: '', tag: '' }));
+                    setImageSource('upload');
+                  }
+                }}
+                style={{ flex: 1 }}
+              >
+                {isEdit ? 'Close' : 'Add Another'}
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-primary" 
+                onClick={() => {
+                  setShowSuccessPopup(false);
+                  router.push('/admin/products');
+                  router.refresh();
+                }}
+                style={{ flex: 1 }}
+              >
+                Go to Products
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className={styles.panelCard} style={{ maxWidth: '800px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
         <div style={{ gridColumn: 'span 2' }}>
           <label className={styles.statLabel}>Product Name</label>
