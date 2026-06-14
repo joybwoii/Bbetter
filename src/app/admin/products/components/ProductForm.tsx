@@ -55,9 +55,9 @@ export default function ProductForm({ initialData, categories, isEdit = false }:
 
     const data = {
       ...formData,
-      price: parseFloat(formData.price.toString()),
-      mrp: parseFloat(formData.mrp.toString()),
-      stock: parseInt(formData.stock.toString()),
+      price: formData.price ? parseFloat(formData.price.toString()) : 0,
+      mrp: formData.mrp ? parseFloat(formData.mrp.toString()) : 0,
+      stock: formData.stock ? parseInt(formData.stock.toString()) : 0,
     };
 
     let result;
