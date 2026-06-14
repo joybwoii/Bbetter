@@ -61,15 +61,23 @@ export default function ProductForm({ initialData, categories, isEdit = false }:
     };
 
     let result;
-    if (isEdit && initialData.id) {
-      result = await updateProduct(initialData.id, data);
-    } else {
-      result = await createProduct(data);
+    try {
+      if (isEdit && initialData?.id) {
+        result = await updateProduct(initialData.id, data);
+      } else {
+        result = await createProduct(data);
+      }
+    } catch (err: any) {
+      console.error("Server Action failed:", err);
+      // Next.js throws an error if payload is > 1MB (e.g. large base64 image)
+      result = { error: err.message?.includes('body size limit') || err.message?.includes('payload') 
+        ? "Image is too large! Please use an image URL or compress the image before uploading." 
+        : "Failed to connect to the server. Your image might be too large." };
     }
 
     setLoading(false);
 
-    if (result.success) {
+    if (result && result.success) {
       setShowSuccessPopup(true);
     } else {
       alert(result.error || 'Something went wrong');
