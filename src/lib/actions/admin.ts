@@ -1,6 +1,6 @@
 'use server';
 
-import { adminDb } from '../firebase/admin';
+import { adminDb, adminStorage } from '../firebase/admin';
 import { revalidatePath } from 'next/cache';
 import { verifyAdmin } from './auth';
 import { sendEmail, generateOrderStatusUpdateEmailHtml } from '../email';
@@ -75,9 +75,44 @@ export async function getUsers() {
   }
 }
 
+async function processImage(imageString: string): Promise<string> {
+  if (!imageString || !imageString.startsWith('data:image/')) return imageString;
+
+  try {
+    const matches = imageString.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    if (!matches || matches.length !== 3) {
+      return imageString;
+    }
+
+    const mimeType = matches[1];
+    const base64Data = matches[2];
+    const buffer = Buffer.from(base64Data, 'base64');
+    
+    const extension = mimeType.split('/')[1] || 'jpg';
+    const filename = `products/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${extension}`;
+    
+    const bucket = adminStorage.bucket();
+    const file = bucket.file(filename);
+    
+    await file.save(buffer, {
+      metadata: { contentType: mimeType },
+      public: true,
+    });
+    
+    return `https://storage.googleapis.com/${bucket.name}/${filename}`;
+  } catch (err) {
+    console.error('Error uploading image to storage:', err);
+    throw new Error('Failed to upload image. Storage might not be configured properly.');
+  }
+}
+
 export async function createProduct(data: any) {
   await verifyAdmin();
   try {
+    if (data.image) {
+      data.image = await processImage(data.image);
+    }
+
     const docRef = await adminDb.collection('products').add({
       ...data,
       isActive: true,
@@ -99,6 +134,10 @@ export async function createProduct(data: any) {
 export async function updateProduct(id: string, data: any) {
   await verifyAdmin();
   try {
+    if (data.image) {
+      data.image = await processImage(data.image);
+    }
+
     await adminDb.collection('products').doc(id).update({
       ...data,
       updatedAt: new Date().toISOString()
