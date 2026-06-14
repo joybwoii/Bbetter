@@ -1,5 +1,4 @@
 import { getProducts, getCategories } from '@/lib/actions/firestore';
-import { MOCK_CATEGORIES } from '@/lib/mock-data';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -9,14 +8,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
   const { id } = await params;
   
   const categories = await getCategories();
-  // Fall back to mock categories for any missing entries (e.g. not yet in Firestore)
-  const allCategories = [...categories];
-  for (const mock of MOCK_CATEGORIES) {
-    if (!allCategories.find(c => c.id === mock.id)) {
-      allCategories.push(mock as any);
-    }
-  }
-  const categoryInfo = allCategories.find(c => c.id === id);
+  const categoryInfo = categories.find(c => c.id === id);
 
   if (!categoryInfo) {
     notFound();

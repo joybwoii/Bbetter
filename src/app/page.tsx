@@ -1,7 +1,6 @@
 import Link from "next/link";
 import styles from "./page.module.css";
 import { getProducts, getCategories } from "@/lib/actions/firestore";
-import { MOCK_CATEGORIES } from "@/lib/mock-data";
 import Image from "next/image";
 
 // Category background images from Unsplash
@@ -20,15 +19,7 @@ export default async function Home() {
 
   const [categories, products] = await Promise.all([categoriesPromise, productsPromise]);
 
-  // Merge with mock categories so all 5 always show
-  const allCategories = [...categories];
-  for (const mock of MOCK_CATEGORIES) {
-    if (!allCategories.find((c: any) => c.id === mock.id)) {
-      allCategories.push(mock as any);
-    }
-  }
-
-  const displayCategories = allCategories;
+  const displayCategories = categories;
   const displayProducts = products;
 
   return (

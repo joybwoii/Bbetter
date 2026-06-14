@@ -1,11 +1,19 @@
 "use client";
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Suspense, useEffect } from 'react';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
+  const router = useRouter();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      router.push('/');
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [router]);
 
   return (
     <div style={{ minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '2rem' }}>
@@ -20,8 +28,12 @@ function SuccessContent() {
         <p style={{ fontWeight: 500, marginBottom: '2rem' }}>Order ID: {orderId}</p>
       )}
       
+      <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '2rem' }}>
+        Redirecting to home page in 5 seconds...
+      </p>
+
       <Link href="/" className="btn btn-primary" style={{ padding: '0.875rem 2rem' }}>
-        Continue Shopping
+        Return Home Now
       </Link>
     </div>
   );

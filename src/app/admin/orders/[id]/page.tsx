@@ -3,8 +3,9 @@ import Link from 'next/link';
 import styles from '../../admin.module.css';
 import StatusUpdateForm from './StatusUpdateForm';
 
-export default async function OrderDetailsPage({ params }: { params: { id: string } }) {
-  const order = await getOrderById(params.id) as any;
+export default async function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const order = await getOrderById(resolvedParams.id) as any;
 
   if (!order) {
     return (
@@ -107,7 +108,7 @@ export default async function OrderDetailsPage({ params }: { params: { id: strin
         </div>
 
         <aside className={styles.sideCol}>
-          <StatusUpdateForm orderId={params.id} currentStatus={order.status} />
+          <StatusUpdateForm orderId={resolvedParams.id} currentStatus={order.status} />
 
           <div className={styles.panelCard}>
             <h2 className={styles.sectionHeading}>Shipping Address</h2>

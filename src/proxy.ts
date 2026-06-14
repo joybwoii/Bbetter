@@ -9,19 +9,13 @@ export default function proxy(request: NextRequest) {
   const protectedRoutes = ['/checkout', '/admin'];
   const isProtected = protectedRoutes.some(route => pathname.startsWith(route));
 
-  // Auth routes (redirect to home if already logged in)
-  const authRoutes = ['/auth/login', '/auth/register'];
-  const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
-
   if (isProtected && !session) {
     const loginUrl = new URL('/auth/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isAuthRoute && session) {
-    return NextResponse.redirect(new URL('/', request.url));
-  }
+  // Removed auto-redirect for auth routes so users can access their account details on the login page when logged in
 
   return NextResponse.next();
 }

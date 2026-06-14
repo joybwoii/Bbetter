@@ -23,6 +23,8 @@ export default function ProductForm({ initialData, categories, isEdit = false }:
     category: initialData?.category || categories[0]?.id || '',
     image: initialData?.image || '',
     tag: initialData?.tag || '',
+    isCODEnabled: initialData?.isCODEnabled ?? true,
+    isOnlinePaymentEnabled: initialData?.isOnlinePaymentEnabled ?? true,
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,8 +39,13 @@ export default function ProductForm({ initialData, categories, isEdit = false }:
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -211,6 +218,29 @@ export default function ProductForm({ initialData, categories, isEdit = false }:
             onChange={handleChange} 
             placeholder="e.g. Best Seller"
           />
+        </div>
+
+        <div style={{ gridColumn: 'span 2', display: 'flex', gap: '2rem', marginTop: '1rem' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <input 
+              type="checkbox" 
+              name="isCODEnabled" 
+              checked={formData.isCODEnabled} 
+              onChange={handleChange} 
+              style={{ width: '1.25rem', height: '1.25rem' }}
+            />
+            <span style={{ fontWeight: 500 }}>Enable Cash on Delivery (COD)</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <input 
+              type="checkbox" 
+              name="isOnlinePaymentEnabled" 
+              checked={formData.isOnlinePaymentEnabled} 
+              onChange={handleChange} 
+              style={{ width: '1.25rem', height: '1.25rem' }}
+            />
+            <span style={{ fontWeight: 500 }}>Enable Online Payment</span>
+          </label>
         </div>
       </div>
 

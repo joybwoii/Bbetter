@@ -56,11 +56,17 @@
 }
 
 .iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.25rem;
   color: var(--foreground);
   padding: 0.5rem;
   border-radius: var(--radius-full);
   transition: background-color var(--transition-fast);
+  cursor: pointer;
+  background: transparent;
+  border: none;
 }
 
 .iconBtn:hover {

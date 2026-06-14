@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import CartDrawer from "@/components/CartDrawer";
+import WhatsAppWidget from "@/components/WhatsAppWidget";
 import "./globals.css";
 
 const inter = Inter({
@@ -25,18 +27,23 @@ export const viewport: Viewport = {
 
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
+import { getCategories } from "@/lib/actions/firestore";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const categories = await getCategories();
+  
   return (
     <html lang="en" className={`${inter.variable}`}>
       <body className="min-h-screen flex flex-col font-sans antialiased text-foreground bg-background">
         <AuthProvider>
           <CartProvider>
-            <Header />
+            <Header categories={categories} />
+            <CartDrawer />
+            <WhatsAppWidget />
             <main className="flex-grow">
               {children}
             </main>

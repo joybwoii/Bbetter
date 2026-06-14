@@ -74,32 +74,12 @@ export async function logoutUser() {
   return { success: true };
 }
 
-export async function demoLogin() {
-  const cookieStore = await cookies();
-  const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
-  
-  // Set a mock session cookie
-  cookieStore.set('__session', 'demo-session-token', {
-    maxAge: expiresIn,
-    httpOnly: true,
-    secure: true,
-    sameSite: 'lax',
-  });
-  
-  return { success: true };
-}
-
 export async function verifyAdmin() {
   const cookieStore = await cookies();
   const session = cookieStore.get('__session')?.value;
 
   if (!session) {
     throw new Error('Unauthorized: No session token');
-  }
-
-  // Support demo token in development / local testing
-  if (session === 'demo-session-token') {
-    return { uid: 'demo-admin', email: 'admin@bbetter.com', role: 'ADMIN' };
   }
 
   try {
@@ -113,7 +93,7 @@ export async function verifyAdmin() {
     }
     
     const userData = userDoc.data();
-    if (userData?.role !== 'ADMIN') {
+    if (userData?.role !== 'ADMIN' || decodedClaims.email !== 'adminbbetter@gmail.com') {
       throw new Error('Unauthorized: Access denied');
     }
     
@@ -134,11 +114,6 @@ export async function verifyUser() {
 
   if (!session) {
     throw new Error('Unauthorized: No session token');
-  }
-
-  // Support demo token in development / local testing
-  if (session === 'demo-session-token') {
-    return { uid: 'demo-user', email: 'user@example.com' };
   }
 
   try {

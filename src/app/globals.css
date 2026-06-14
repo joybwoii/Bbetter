@@ -211,6 +211,13 @@ button {
   to { transform: rotate(360deg); }
 }
 
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
 /* File Upload Styles */
 .mediaSelectorTabs {
   display: flex;

@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { getCategories } from '@/lib/actions/firestore';
 import styles from '../admin.module.css';
 import { createCategory } from '@/lib/actions/admin';

@@ -75,13 +75,13 @@
 /* Categories Grid */
 .categoriesGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
 }
 
 .categoryCard {
   position: relative;
-  height: 400px;
+  height: 350px;
   border-radius: var(--radius-lg);
   overflow: hidden;
   background-color: var(--surface);
@@ -147,8 +147,8 @@
 /* Bestsellers */
 .productsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
 }
 
 .productCard {
@@ -201,4 +201,37 @@
 
 .productReviews {
   color: var(--text-muted);
+}
+
+@media (min-width: 640px) {
+  .categoriesGrid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+  .productsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .categoryCard {
+    height: 180px;
+    padding: 1rem;
+  }
+  .categoryTitle {
+    font-size: 1.1rem;
+  }
+  .categoryLink {
+    font-size: 0.8rem;
+  }
+  .productInfo {
+    padding: 1rem;
+  }
+  .productTitle {
+    font-size: 0.95rem;
+  }
+  .productPrice {
+    font-size: 1.1rem;
+  }
 }

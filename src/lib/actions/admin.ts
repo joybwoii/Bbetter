@@ -1,24 +1,30 @@
 'use server';
 
 import { adminDb } from '../firebase/admin';
-import { MOCK_PRODUCTS, MOCK_ORDERS, MOCK_USERS } from '../mock-data';
 import { revalidatePath } from 'next/cache';
 import { verifyAdmin } from './auth';
+import { sendEmail, generateOrderStatusUpdateEmailHtml } from '../email';
 
 export async function getDashboardStats() {
   await verifyAdmin();
   try {
     const productsSnap = await adminDb.collection('products').count().get();
     const usersSnap = await adminDb.collection('users').count().get();
-    const ordersSnap = await adminDb.collection('orders').get();
+    const ordersSnap = await adminDb.collection('orders').orderBy('createdAt', 'desc').limit(5).get();
+    const recentUsersSnap = await adminDb.collection('users').orderBy('createdAt', 'desc').limit(5).get();
 
-    const orders = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    const finalOrders = orders.length > 0 ? orders : MOCK_ORDERS;
+    const finalOrders = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const recentUsers = recentUsersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // For total sales and active orders, we'd ideally use an aggregation query, but for now we'll do a basic fetch or keep it simple.
+    // Since we need total sales across ALL orders, let's fetch all orders (or implement an aggregation if possible).
+    const allOrdersSnap = await adminDb.collection('orders').get();
+    const allOrders = allOrdersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     let totalSales = 0;
     let activeOrders = 0;
     
-    finalOrders.forEach((order: any) => {
+    allOrders.forEach((order: any) => {
       if (order.status !== 'CANCELLED') {
         totalSales += order.total || 0;
       }
@@ -30,17 +36,19 @@ export async function getDashboardStats() {
     return {
       totalSales,
       activeOrders,
-      totalCustomers: usersSnap.data()?.count || MOCK_USERS.length,
+      totalCustomers: usersSnap.data()?.count || 0,
       lowStockItems: 3, 
-      recentOrders: finalOrders.slice(0, 5),
+      recentOrders: finalOrders,
+      recentUsers: recentUsers,
     };
   } catch (error) {
     return {
-      totalSales: MOCK_ORDERS.reduce((acc, curr) => acc + (curr.status !== 'CANCELLED' ? curr.total : 0), 0),
-      activeOrders: MOCK_ORDERS.filter(o => ['PENDING', 'PROCESSING', 'SHIPPED'].includes(o.status)).length,
-      totalCustomers: MOCK_USERS.length,
-      lowStockItems: 3,
-      recentOrders: MOCK_ORDERS.slice(0, 5),
+      totalSales: 0,
+      activeOrders: 0,
+      totalCustomers: 0,
+      lowStockItems: 0,
+      recentOrders: [],
+      recentUsers: [],
     };
   }
 }
@@ -50,9 +58,9 @@ export async function getProducts() {
   try {
     const snap = await adminDb.collection('products').get();
     const products = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return products.length > 0 ? products : MOCK_PRODUCTS;
+    return products;
   } catch (error) {
-    return MOCK_PRODUCTS;
+    return [];
   }
 }
 
@@ -61,9 +69,9 @@ export async function getUsers() {
   try {
     const snap = await adminDb.collection('users').get();
     const users = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return users.length > 0 ? users : MOCK_USERS;
+    return users;
   } catch (error) {
-    return MOCK_USERS;
+    return [];
   }
 }
 
@@ -167,6 +175,10 @@ export async function createCategory(data: any) {
       id,
       createdAt: new Date().toISOString()
     });
+    
+    // Invalidate entire layout cache so navbar and forms update
+    revalidatePath('/', 'layout');
+    
     return { success: true, id };
   } catch (error: any) {
     console.error('Error creating category:', error);
@@ -179,9 +191,9 @@ export async function getOrders() {
   try {
     const snap = await adminDb.collection('orders').orderBy('createdAt', 'desc').get();
     const orders = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return orders.length > 0 ? orders : MOCK_ORDERS;
+    return orders;
   } catch (error) {
-    return MOCK_ORDERS;
+    return [];
   }
 }
 
@@ -190,21 +202,36 @@ export async function getOrderById(id: string) {
   try {
     const doc = await adminDb.collection('orders').doc(id).get();
     if (!doc.exists) {
-      return MOCK_ORDERS.find(o => o.id === id) || null;
+      return null;
     }
     return { id: doc.id, ...doc.data() };
   } catch (error) {
-    return MOCK_ORDERS.find(o => o.id === id) || null;
+    return null;
   }
 }
 
 export async function updateOrderStatus(id: string, status: string) {
   await verifyAdmin();
   try {
-    await adminDb.collection('orders').doc(id).update({
+    const docRef = adminDb.collection('orders').doc(id);
+    await docRef.update({
       status,
       updatedAt: new Date().toISOString()
     });
+
+    // Fetch the order data to send email
+    const doc = await docRef.get();
+    if (doc.exists) {
+      const order = { id: doc.id, ...doc.data() } as any;
+      if (order.shipping?.email) {
+        await sendEmail(
+          order.shipping.email,
+          `Order Status Update: ${status}`,
+          generateOrderStatusUpdateEmailHtml(order, status)
+        );
+      }
+    }
+
     return { success: true };
   } catch (error: any) {
     console.error('Error updating order status:', error);
@@ -246,5 +273,52 @@ export async function saveSettings(data: any) {
   } catch (error: any) {
     console.error('Error saving settings:', error);
     return { error: error.message || 'Failed to save settings' };
+  }
+}
+
+export async function addReviewToProduct(productId: string, reviewData: any) {
+  await verifyAdmin();
+  try {
+    const docRef = adminDb.collection('products').doc(productId);
+    const doc = await docRef.get();
+    
+    if (!doc.exists) {
+      return { error: 'Product not found' };
+    }
+
+    const data = doc.data();
+    const reviewsList = data?.reviewsList || [];
+    
+    const newReview = {
+      id: Math.random().toString(36).substring(2, 9),
+      rating: parseFloat(reviewData.rating),
+      description: reviewData.description,
+      image: reviewData.image || null,
+      createdAt: new Date().toISOString()
+    };
+
+    reviewsList.push(newReview);
+    
+    // Update total reviews and average rating
+    const totalReviews = reviewsList.length;
+    const avgRating = reviewsList.reduce((acc: number, curr: any) => acc + curr.rating, 0) / totalReviews;
+
+    await docRef.update({
+      reviewsList,
+      reviews: totalReviews,
+      rating: Math.round(avgRating * 10) / 10
+    });
+
+    revalidatePath('/');
+    if (data?.category) {
+      revalidatePath(`/category/${data.category}`);
+    }
+    revalidatePath(`/product/${productId}`);
+    revalidatePath('/admin/products');
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error adding review:', error);
+    return { error: error.message || 'Failed to add review' };
   }
 }

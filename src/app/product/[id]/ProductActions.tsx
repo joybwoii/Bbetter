@@ -15,7 +15,7 @@ interface ProductActionsProps {
 }
 
 export default function ProductActions({ product }: ProductActionsProps) {
-  const { addToCart } = useCart();
+  const { addToCart, setIsCartOpen } = useCart();
   const router = useRouter();
   const [isAdding, setIsAdding] = React.useState(false);
   const [isBuying, setIsBuying] = React.useState(false);
@@ -55,6 +55,10 @@ export default function ProductActions({ product }: ProductActionsProps) {
       category: product.category
     };
     addToCart(item);
+    
+    // Close the cart drawer that addToCart automatically opens
+    setIsCartOpen(false);
+    
     setIsBuying(false);
     router.push('/checkout');
   };

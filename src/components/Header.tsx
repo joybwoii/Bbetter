@@ -8,9 +8,10 @@ import { useAuth } from '@/context/AuthContext';
 import { auth } from '@/lib/firebase/config';
 import { signOut } from 'firebase/auth';
 import { logoutUser } from '@/lib/actions/auth';
+import { Category } from '@/lib/actions/firestore';
 
-export default function Header() {
-  const { cartCount } = useCart();
+export default function Header({ categories = [] }: { categories?: Category[] }) {
+  const { cartCount, setIsCartOpen } = useCart();
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -46,11 +47,20 @@ export default function Header() {
           </Link>
 
           <div className={styles.links}>
-            {navLink('/category/kitchen', 'Kitchen')}
-            {navLink('/category/organization', 'Organization')}
-            {navLink('/category/gadgets', 'Gadgets')}
-            {navLink('/category/beauty', 'Beauty')}
-            {navLink('/category/home-gym', 'Home Gym')}
+            {categories.map((category) => (
+              <div key={category.id}>
+                {navLink(`/category/${category.id}`, category.name)}
+              </div>
+            ))}
+            {categories.length === 0 && (
+              <>
+                {navLink('/category/kitchen', 'Kitchen')}
+                {navLink('/category/organization', 'Organization')}
+                {navLink('/category/gadgets', 'Gadgets')}
+                {navLink('/category/beauty', 'Beauty')}
+                {navLink('/category/home-gym', 'Home Gym')}
+              </>
+            )}
           </div>
 
           <div className={styles.actions}>
@@ -58,66 +68,50 @@ export default function Header() {
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             </button>
             
-            {!loading && user ? (
-              <div style={{ position: 'relative' }}>
-                <button 
-                  className={styles.iconBtn} 
-                  aria-label="Account"
-                  onClick={() => setShowDropdown(!showDropdown)}
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                </button>
-                {showDropdown && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '100%',
-                    right: 0,
-                    marginTop: '0.5rem',
-                    background: 'var(--background)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '0.5rem',
-                    minWidth: '150px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                    zIndex: 50,
-                  }}>
-                    <div style={{ padding: '0.5rem', fontSize: '0.875rem', fontWeight: 600, borderBottom: '1px solid var(--border)', marginBottom: '0.5rem' }}>
-                      {user.email}
+            <div style={{ position: 'relative' }}>
+              {user && !loading ? (
+                <>
+                  <button 
+                    className={styles.iconBtn} 
+                    aria-label="Account Menu"
+                    onClick={() => setShowDropdown(!showDropdown)}
+                  >
+                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: 'var(--surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{user.displayName?.[0] || user.email?.[0]?.toUpperCase() || 'U'}</span>
                     </div>
-                    {/* Add links to orders/profile later if needed */}
-                    <button 
-                      onClick={handleLogout}
-                      style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: '0.5rem',
-                        fontSize: '0.875rem',
-                        color: 'var(--error)',
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        borderRadius: 'var(--radius-sm)'
-                      }}
-                      onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
-                      onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Link href="/auth/login" className={styles.iconBtn} aria-label="Account">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-              </Link>
-            )}
+                  </button>
+                  {showDropdown && (
+                    <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '0.5rem', minWidth: '150px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', zIndex: 100 }}>
+                      <div style={{ padding: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)', marginBottom: '0.5rem', wordBreak: 'break-all' }}>
+                        {user.email}
+                      </div>
+                      <Link href="/my-orders" className={styles.link} style={{ display: 'block', padding: '0.5rem', margin: 0, textAlign: 'left' }} onClick={() => setShowDropdown(false)}>
+                        My Orders
+                      </Link>
+                      <button onClick={handleLogout} className={styles.link} style={{ display: 'block', width: '100%', padding: '0.5rem', margin: 0, textAlign: 'left', color: 'var(--error)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                        Log Out
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <Link href="/auth/login" className={styles.iconBtn} aria-label="Account">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </Link>
+              )}
+            </div>
 
-            <Link href="/cart" className={styles.iconBtn} aria-label="Cart" style={{ position: 'relative' }}>
+            <button 
+              className={styles.iconBtn} 
+              aria-label="Cart" 
+              style={{ position: 'relative' }}
+              onClick={() => setIsCartOpen(true)}
+            >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
               {cartCount > 0 && (
                 <span className={styles.cartBadge}>{cartCount}</span>
               )}
-            </Link>
+            </button>
           </div>
         </nav>
       </div>

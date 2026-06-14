@@ -87,21 +87,24 @@ export default async function AdminDashboard() {
             <button className="btn btn-outline" style={{ width: '100%' }}>Update Stock Levels</button>
           </div>
           
-          <h2 className={styles.panelTitle} style={{ marginTop: '2rem' }}>System Status</h2>
-          <ul className={styles.topProducts}>
-            <li className={styles.topProductItem}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 500, fontSize: '0.875rem' }}>Firebase Firestore</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--success)' }}>Connected</div>
-              </div>
-            </li>
-            <li className={styles.topProductItem}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 500, fontSize: '0.875rem' }}>Firebase Auth</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--success)' }}>Connected</div>
-              </div>
-            </li>
-          </ul>
+          <h2 className={styles.panelTitle} style={{ marginTop: '2rem' }}>Recent Users</h2>
+          {stats.recentUsers && stats.recentUsers.length > 0 ? (
+            <ul className={styles.topProducts}>
+              {stats.recentUsers.map((user: any) => (
+                <li key={user.id} className={styles.topProductItem}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 500, fontSize: '0.875rem' }}>{user.displayName || user.email || 'Unknown User'}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Joined {new Date(user.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--success)', background: 'rgba(34,197,94,0.1)', padding: '0.125rem 0.375rem', borderRadius: '0.25rem' }}>Active</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>No recent users</div>
+          )}
         </div>
       </div>
     </div>
