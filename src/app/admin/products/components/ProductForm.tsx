@@ -316,5 +316,6 @@ export default function ProductForm({ initialData, categories, isEdit = false }:
         </button>
       </div>
     </form>
+    </>
   );
 }
