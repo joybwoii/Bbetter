@@ -157,17 +157,25 @@ export async function getUserOrdersByEmail(email: string) {
   try {
     const snapshot = await adminDb.collection('orders')
       .where('shipping.email', '==', email)
-      .orderBy('createdAt', 'desc')
       .get();
       
     if (snapshot.empty) {
       return [];
     }
 
-    return snapshot.docs.map(doc => ({
+    const orders = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
+
+    // Sort in memory to avoid composite index requirement
+    orders.sort((a: any, b: any) => {
+      const timeA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : (new Date(a.createdAt).getTime() || 0);
+      const timeB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : (new Date(b.createdAt).getTime() || 0);
+      return timeB - timeA;
+    });
+
+    return orders;
   } catch (error) {
     console.error("Firestore getUserOrdersByEmail error:", error);
     return [];
