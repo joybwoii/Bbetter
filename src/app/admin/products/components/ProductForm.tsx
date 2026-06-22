@@ -31,6 +31,12 @@ export default function ProductForm({ initialData, categories, isEdit = false }:
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 512000) { // 500KB limit
+        alert("The image size is too high, please upload an image under 500KB in size.");
+        e.target.value = ''; // Reset the input
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({ ...prev, image: reader.result as string }));
@@ -240,7 +246,7 @@ export default function ProductForm({ initialData, categories, isEdit = false }:
             <div className="uploadZone" onClick={() => document.getElementById('fileInput')?.click()}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 0.5rem', display: 'block', color: 'var(--text-muted)' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
               <p style={{ fontSize: '0.875rem', fontWeight: 500 }}>Click to select an image from gallery</p>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Supports PNG, JPG, JPEG, WEBP, SVG</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Supports PNG, JPG, JPEG, WEBP, SVG (Max 500KB)</p>
               <input 
                 type="file" 
                 id="fileInput" 
