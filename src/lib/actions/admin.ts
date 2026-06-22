@@ -10,11 +10,26 @@ export async function getDashboardStats() {
   try {
     const productsSnap = await adminDb.collection('products').count().get();
     const usersSnap = await adminDb.collection('users').count().get();
-    const ordersSnap = await adminDb.collection('orders').orderBy('createdAt', 'desc').limit(5).get();
-    const recentUsersSnap = await adminDb.collection('users').orderBy('createdAt', 'desc').limit(5).get();
+    
+    // Fetch all and sort in memory to avoid any index issues
+    const allOrdersSnapTemp = await adminDb.collection('orders').get();
+    let finalOrders = allOrdersSnapTemp.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    finalOrders.sort((a: any, b: any) => {
+      const timeA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : (new Date(a.createdAt).getTime() || 0);
+      const timeB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : (new Date(b.createdAt).getTime() || 0);
+      return timeB - timeA;
+    });
+    
+    const recentUsersSnapTemp = await adminDb.collection('users').get();
+    let recentUsers = recentUsersSnapTemp.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    recentUsers.sort((a: any, b: any) => {
+      const timeA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : (new Date(a.createdAt).getTime() || 0);
+      const timeB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : (new Date(b.createdAt).getTime() || 0);
+      return timeB - timeA;
+    });
 
-    const finalOrders = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    const recentUsers = recentUsersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    finalOrders = finalOrders.slice(0, 5);
+    recentUsers = recentUsers.slice(0, 5);
 
     // For total sales and active orders, we'd ideally use an aggregation query, but for now we'll do a basic fetch or keep it simple.
     // Since we need total sales across ALL orders, let's fetch all orders (or implement an aggregation if possible).
@@ -42,6 +57,7 @@ export async function getDashboardStats() {
       recentUsers: recentUsers,
     };
   } catch (error) {
+    console.error("getDashboardStats error:", error);
     return {
       totalSales: 0,
       activeOrders: 0,
@@ -229,10 +245,16 @@ export async function createCategory(data: any) {
 export async function getOrders() {
   await verifyAdmin();
   try {
-    const snap = await adminDb.collection('orders').orderBy('createdAt', 'desc').get();
+    const snap = await adminDb.collection('orders').get();
     const orders = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    orders.sort((a: any, b: any) => {
+      const timeA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : (new Date(a.createdAt).getTime() || 0);
+      const timeB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : (new Date(b.createdAt).getTime() || 0);
+      return timeB - timeA;
+    });
     return orders;
   } catch (error) {
+    console.error("getOrders error:", error);
     return [];
   }
 }
