@@ -102,7 +102,8 @@ async function processImage(imageString: string): Promise<string> {
     return `https://storage.googleapis.com/${bucket.name}/${filename}`;
   } catch (err) {
     console.error('Error uploading image to storage:', err);
-    throw new Error('Failed to upload image. Storage might not be configured properly.');
+    // Fallback to base64 if storage is not configured properly
+    return imageString;
   }
 }
 
