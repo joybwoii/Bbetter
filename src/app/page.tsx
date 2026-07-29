@@ -27,24 +27,25 @@ export default async function Home() {
           src="/hero_perfume_black.png"
           alt="Premium CR7 style perfumes and fragrances"
           fill
+          style={{ objectFit: 'cover', objectPosition: 'center' }}
           className={styles.heroImage}
           priority
           sizes="100vw"
         />
         <div className={styles.heroOverlay}></div>
         <div className={styles.heroContent}>
-          <h1 className={`${styles.heroTitle} animate-fade-in`}>
+          <h1 className={`${styles.heroTitle} animate-fade-in`} style={{ color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
             Discover Your Signature Scent. <br />
-            <span>Live Beautifully.</span>
+            <span style={{ color: '#ffffff' }}>Live Beautifully.</span>
           </h1>
-          <p className={`${styles.heroSubtitle} animate-fade-in`} style={{ animationDelay: '100ms' }}>
+          <p className={`${styles.heroSubtitle} animate-fade-in`} style={{ animationDelay: '100ms', color: '#ffffff', textShadow: '0 1px 5px rgba(0,0,0,0.8)' }}>
             Explore our exclusive collection of premium fragrances crafted for an unforgettable presence and lasting impression.
           </p>
           <div className={`${styles.heroActions} animate-fade-in`} style={{ animationDelay: '200ms' }}>
             <Link href="#categories" className="btn btn-primary">
               Shop Now
             </Link>
-            <Link href="#trending" className="btn btn-outline" style={{ borderColor: 'rgba(255, 255, 255, 0.8)', color: 'white' }}>
+            <Link href="#trending" className="btn btn-outline" style={{ borderColor: '#ffffff', color: '#ffffff', backgroundColor: 'rgba(0,0,0,0.3)', textShadow: 'none' }}>
               Trending
             </Link>
           </div>
