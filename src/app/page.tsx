@@ -24,8 +24,8 @@ export default async function Home() {
       {/* Hero Section */}
       <section className={styles.hero}>
         <Image
-          src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1600&q=80&auto=format&fit=crop"
-          alt="Premium perfumes and fragrances"
+          src="/hero_perfume_black.png"
+          alt="Premium CR7 style perfumes and fragrances"
           fill
           className={styles.heroImage}
           priority

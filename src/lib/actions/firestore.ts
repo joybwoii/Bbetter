@@ -115,10 +115,19 @@ export async function getCategories(): Promise<Category[]> {
       return defaultCategories;
     }
 
-    const categories = snapshot.docs.map((doc: any) => ({
+    let categories = snapshot.docs.map((doc: any) => ({
       id: doc.id,
       ...doc.data()
     })) as Category[];
+
+    categories = categories.filter(c => ['men', 'women'].includes(c.id.toLowerCase() || ''));
+
+    if (categories.length === 0) {
+      return [
+        { id: 'men', name: 'Men', description: 'Exclusive fragrances for Men' },
+        { id: 'women', name: 'Women', description: 'Elegant perfumes for Women' }
+      ];
+    }
 
     return categories;
   } catch (error: any) {
