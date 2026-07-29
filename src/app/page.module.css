@@ -17,6 +17,11 @@
   background: linear-gradient(180deg, var(--surface) 0%, var(--background) 100%);
 }
 
+.heroImage {
+  object-fit: cover;
+  object-position: center;
+}
+
 .heroContent {
   position: relative;
   z-index: 10;
