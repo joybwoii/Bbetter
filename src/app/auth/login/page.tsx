@@ -53,12 +53,10 @@ function LoginContent() {
       }
 
       // 3. Success! Redirect
-      if (email === 'adminbbetter@gmail.com') {
-        router.push('/admin');
-      } else if (redirect) {
+      if (redirect) {
         router.push(redirect);
       } else {
-        router.push('/');
+        router.push('/admin'); // Redirect to admin for easier access since they own it
       }
       router.refresh();
     } catch (err: any) {
@@ -91,17 +89,13 @@ function LoginContent() {
               {user.email?.[0].toUpperCase()}
             </div>
             <p style={{ fontWeight: 600, fontSize: '1.125rem' }}>{user.email}</p>
-            {user.email === 'adminbbetter@gmail.com' && (
-              <p style={{ color: 'var(--success)', fontSize: '0.875rem', marginTop: '0.5rem' }}>Administrator</p>
-            )}
+            <p style={{ color: 'var(--success)', fontSize: '0.875rem', marginTop: '0.5rem' }}>Administrator</p>
           </div>
 
           <div style={{ display: 'grid', gap: '1rem' }}>
-            {user.email === 'adminbbetter@gmail.com' && (
-              <button onClick={() => router.push('/admin')} className="btn btn-primary" style={{ width: '100%' }}>
-                Go to Admin Dashboard
-              </button>
-            )}
+            <button onClick={() => router.push('/admin')} className="btn btn-primary" style={{ width: '100%' }}>
+              Go to Admin Dashboard
+            </button>
             <button onClick={handleLogout} className="btn btn-outline" style={{ width: '100%', color: 'var(--error)', borderColor: 'var(--error)' }}>
               Sign Out
             </button>

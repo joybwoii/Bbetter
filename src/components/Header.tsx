@@ -82,6 +82,9 @@ export default function Header({ categories = [] }: { categories?: Category[] })
                       <div style={{ padding: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)', marginBottom: '0.5rem', wordBreak: 'break-all' }}>
                         {user.email}
                       </div>
+                      <Link href="/admin" className={styles.link} style={{ display: 'block', padding: '0.5rem', margin: 0, textAlign: 'left', fontWeight: 'bold' }} onClick={() => setShowDropdown(false)}>
+                        Admin Dashboard
+                      </Link>
                       <Link href="/my-orders" className={styles.link} style={{ display: 'block', padding: '0.5rem', margin: 0, textAlign: 'left' }} onClick={() => setShowDropdown(false)}>
                         My Orders
                       </Link>
