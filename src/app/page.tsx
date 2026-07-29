@@ -35,7 +35,7 @@ export default async function Home() {
         <div className={styles.heroContent}>
           <h1 className={`${styles.heroTitle} animate-fade-in`}>
             Discover Your Signature Scent. <br />
-            <span className="text-gradient">Live Beautifully.</span>
+            <span>Live Beautifully.</span>
           </h1>
           <p className={`${styles.heroSubtitle} animate-fade-in`} style={{ animationDelay: '100ms' }}>
             Explore our exclusive collection of premium fragrances crafted for an unforgettable presence and lasting impression.
@@ -44,7 +44,7 @@ export default async function Home() {
             <Link href="#categories" className="btn btn-primary">
               Shop Now
             </Link>
-            <Link href="#trending" className="btn btn-outline">
+            <Link href="#trending" className="btn btn-outline" style={{ borderColor: 'rgba(255, 255, 255, 0.8)', color: 'white' }}>
               Trending
             </Link>
           </div>
