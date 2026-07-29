@@ -4,8 +4,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 import styles from './page.module.css';
 
-export default async function CategoryPage({ params }: { params: Promise<{ id: string }> }) {
+import ProductFilter from '@/components/ProductFilter';
+
+export default async function CategoryPage({ 
+  params,
+  searchParams,
+}: { 
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+  const sort = typeof resolvedSearchParams?.sort === 'string' ? resolvedSearchParams.sort : 'default';
   
   const categories = await getCategories();
   const categoryInfo = categories.find(c => c.id === id);
@@ -16,6 +26,15 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
 
   const products = await getProducts(id);
 
+  let sortedProducts = [...products];
+  if (sort === 'price-asc') {
+    sortedProducts.sort((a, b) => a.price - b.price);
+  } else if (sort === 'price-desc') {
+    sortedProducts.sort((a, b) => b.price - a.price);
+  } else if (sort === 'most-selling') {
+    sortedProducts.sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
+  }
+
   return (
     <div className={styles.categoryPage}>
       <div className={styles.header}>
@@ -25,9 +44,11 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
         )}
       </div>
 
-      {products.length > 0 ? (
-        <div className={styles.productsGrid}>
-          {products.map((product) => (
+      {sortedProducts.length > 0 ? (
+        <>
+          <ProductFilter />
+          <div className={styles.productsGrid}>
+            {sortedProducts.map((product) => (
             <Link href={`/product/${product.id}`} key={product.id} className={styles.productCard}>
               <div className={styles.productImageContainer}>
                 {product.image ? (
@@ -63,7 +84,8 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
               </div>
             </Link>
           ))}
-        </div>
+          </div>
+        </>
       ) : (
         <div className={styles.noProducts}>
           <p>We are currently restocking our amazing {categoryInfo.name.toLowerCase()} items. Check back soon!</p>

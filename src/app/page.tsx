@@ -5,11 +5,8 @@ import Image from "next/image";
 
 // Category background images from Unsplash
 const CATEGORY_IMAGES: Record<string, string> = {
-  kitchen: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80&auto=format&fit=crop",
-  organization: "https://images.unsplash.com/photo-1616046229478-9901c5536a45?w=800&q=80&auto=format&fit=crop",
-  gadgets: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80&auto=format&fit=crop",
-  beauty: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=80&auto=format&fit=crop",
-  "home-gym": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80&auto=format&fit=crop",
+  men: "https://images.unsplash.com/photo-1610461888750-10bfc601b874?w=800&q=80&auto=format&fit=crop",
+  women: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=800&q=80&auto=format&fit=crop",
 };
 
 export default async function Home() {
@@ -27,8 +24,8 @@ export default async function Home() {
       {/* Hero Section */}
       <section className={styles.hero}>
         <Image
-          src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1600&q=80&auto=format&fit=crop"
-          alt="Modern lifestyle home interior"
+          src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1600&q=80&auto=format&fit=crop"
+          alt="Premium perfumes and fragrances"
           fill
           className={styles.heroImage}
           priority
@@ -37,11 +34,11 @@ export default async function Home() {
         <div className={styles.heroOverlay}></div>
         <div className={styles.heroContent}>
           <h1 className={`${styles.heroTitle} animate-fade-in`}>
-            Simplify Everyday. <br />
-            <span className="text-gradient">Live Better.</span>
+            Discover Your Signature Scent. <br />
+            <span className="text-gradient">Live Beautifully.</span>
           </h1>
           <p className={`${styles.heroSubtitle} animate-fade-in`} style={{ animationDelay: '100ms' }}>
-            Discover our curated collection of intelligent home gadgets and organization solutions designed for a modern, clutter-free lifestyle.
+            Explore our exclusive collection of premium fragrances crafted for an unforgettable presence and lasting impression.
           </p>
           <div className={`${styles.heroActions} animate-fade-in`} style={{ animationDelay: '200ms' }}>
             <Link href="#categories" className="btn btn-primary">
@@ -58,7 +55,7 @@ export default async function Home() {
       <section id="categories" className={`${styles.section} container`}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Shop by Category</h2>
-          <p className={styles.sectionSubtitle}>Find exactly what you need to upgrade every corner of your home.</p>
+          <p className={styles.sectionSubtitle}>Find the perfect scent for every occasion.</p>
         </div>
         
         <div className={styles.categoriesGrid}>

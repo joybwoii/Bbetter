@@ -11,19 +11,16 @@ export default function Footer() {
               <span className={styles.brandB}>B</span>better
             </Link>
             <p className={styles.description}>
-              Elevating daily life with smart, premium problem-solving products tailored for the modern home.
+              Elevating your presence with exclusive, premium fragrances crafted for elegance.
             </p>
           </div>
           
           <div>
             <h3 className={styles.heading}>Shop</h3>
             <ul className={styles.list}>
-              <li><Link href="/category/kitchen" className={styles.link}>Kitchen</Link></li>
-              <li><Link href="/category/home-organization" className={styles.link}>Home Organization</Link></li>
-              <li><Link href="/category/smart-gadgets" className={styles.link}>Smart Gadgets</Link></li>
-              <li><Link href="/category/beauty" className={styles.link}>Beauty & Hair</Link></li>
-              <li><Link href="/category/home-gym" className={styles.link}>Home Gym</Link></li>
-              <li><Link href="/bestsellers" className={styles.link}>Best Sellers</Link></li>
+              <li><Link href="/category/men" className={styles.link}>Men</Link></li>
+              <li><Link href="/category/women" className={styles.link}>Women</Link></li>
+              <li><Link href="/#trending" className={styles.link}>Best Sellers</Link></li>
             </ul>
           </div>
 

@@ -54,11 +54,8 @@ export default function Header({ categories = [] }: { categories?: Category[] })
             ))}
             {categories.length === 0 && (
               <>
-                {navLink('/category/kitchen', 'Kitchen')}
-                {navLink('/category/organization', 'Organization')}
-                {navLink('/category/gadgets', 'Gadgets')}
-                {navLink('/category/beauty', 'Beauty')}
-                {navLink('/category/home-gym', 'Home Gym')}
+                {navLink('/category/men', 'Men')}
+                {navLink('/category/women', 'Women')}
               </>
             )}
           </div>

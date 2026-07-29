@@ -98,11 +98,8 @@ export async function getCategories(): Promise<Category[]> {
     if (snapshot.empty) {
       // Auto-seed default categories if empty
       const defaultCategories = [
-        { id: 'kitchen', name: 'Kitchen', description: 'Smart kitchen utilities and gadgets' },
-        { id: 'organization', name: 'Organization', description: 'Premium home organization solutions' },
-        { id: 'gadgets', name: 'Gadgets', description: 'Innovative smart gadgets for daily use' },
-        { id: 'beauty', name: 'Beauty', description: 'Advanced beauty and grooming products' },
-        { id: 'home-gym', name: 'Home Gym', description: 'Compact and smart fitness equipment' }
+        { id: 'men', name: 'Men', description: 'Exclusive fragrances for Men' },
+        { id: 'women', name: 'Women', description: 'Elegant perfumes for Women' }
       ];
       
       const batch = adminDb.batch();
