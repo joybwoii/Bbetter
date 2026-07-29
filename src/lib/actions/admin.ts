@@ -6,8 +6,8 @@ import { verifyAdmin } from './auth';
 import { sendEmail, generateOrderStatusUpdateEmailHtml } from '../email';
 
 export async function getDashboardStats() {
-  await verifyAdmin();
   try {
+    await verifyAdmin();
     const productsSnap = await adminDb.collection('products').count().get();
     const usersSnap = await adminDb.collection('users').count().get();
     
@@ -70,8 +70,8 @@ export async function getDashboardStats() {
 }
 
 export async function getProducts() {
-  await verifyAdmin();
   try {
+    await verifyAdmin();
     const snap = await adminDb.collection('products').get();
     const products = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     return products;
@@ -81,8 +81,8 @@ export async function getProducts() {
 }
 
 export async function getUsers() {
-  await verifyAdmin();
   try {
+    await verifyAdmin();
     const snap = await adminDb.collection('users').get();
     const users = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     return users;
@@ -124,8 +124,8 @@ async function processImage(imageString: string): Promise<string> {
 }
 
 export async function createProduct(data: any) {
-  await verifyAdmin();
   try {
+    await verifyAdmin();
     if (data.image) {
       data.image = await processImage(data.image);
     }
@@ -149,8 +149,8 @@ export async function createProduct(data: any) {
 }
 
 export async function updateProduct(id: string, data: any) {
-  await verifyAdmin();
   try {
+    await verifyAdmin();
     if (data.image) {
       data.image = await processImage(data.image);
     }
@@ -174,8 +174,8 @@ export async function updateProduct(id: string, data: any) {
 }
 
 export async function deleteProduct(id: string) {
-  await verifyAdmin();
   try {
+    await verifyAdmin();
     const doc = await adminDb.collection('products').doc(id).get();
     const data = doc.data();
     
@@ -197,8 +197,8 @@ export async function deleteProduct(id: string) {
 }
 
 export async function toggleProductStatus(id: string, currentStatus: boolean) {
-  await verifyAdmin();
   try {
+    await verifyAdmin();
     const doc = await adminDb.collection('products').doc(id).get();
     const data = doc.data();
 
@@ -223,8 +223,8 @@ export async function toggleProductStatus(id: string, currentStatus: boolean) {
 }
 
 export async function createCategory(data: any) {
-  await verifyAdmin();
   try {
+    await verifyAdmin();
     const id = data.id || data.name.toLowerCase().replace(/\s+/g, '-');
     await adminDb.collection('categories').doc(id).set({
       ...data,
@@ -243,8 +243,8 @@ export async function createCategory(data: any) {
 }
 
 export async function getOrders() {
-  await verifyAdmin();
   try {
+    await verifyAdmin();
     const snap = await adminDb.collection('orders').get();
     const orders = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     orders.sort((a: any, b: any) => {
@@ -260,8 +260,8 @@ export async function getOrders() {
 }
 
 export async function getOrderById(id: string) {
-  await verifyAdmin();
   try {
+    await verifyAdmin();
     const doc = await adminDb.collection('orders').doc(id).get();
     if (!doc.exists) {
       return null;
@@ -273,8 +273,8 @@ export async function getOrderById(id: string) {
 }
 
 export async function updateOrderStatus(id: string, status: string) {
-  await verifyAdmin();
   try {
+    await verifyAdmin();
     const docRef = adminDb.collection('orders').doc(id);
     await docRef.update({
       status,
@@ -302,8 +302,8 @@ export async function updateOrderStatus(id: string, status: string) {
 }
 
 export async function getSettings() {
-  await verifyAdmin();
   try {
+    await verifyAdmin();
     const doc = await adminDb.collection('settings').doc('store').get();
     if (doc.exists) return doc.data();
     return {
@@ -325,8 +325,8 @@ export async function getSettings() {
 }
 
 export async function saveSettings(data: any) {
-  await verifyAdmin();
   try {
+    await verifyAdmin();
     await adminDb.collection('settings').doc('store').set({
       ...data,
       updatedAt: new Date().toISOString()
@@ -339,8 +339,8 @@ export async function saveSettings(data: any) {
 }
 
 export async function addReviewToProduct(productId: string, reviewData: any) {
-  await verifyAdmin();
   try {
+    await verifyAdmin();
     const docRef = adminDb.collection('products').doc(productId);
     const doc = await docRef.get();
     
