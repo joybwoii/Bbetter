@@ -18,7 +18,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const discount = Math.round(((mrp - price) / mrp) * 100);
   
   // Use images plural if available, fallback to single image
-  const images = (product as any).images || (product.image ? [product.image] : []);
+  const images = (product as typeof product & { images?: string[] }).images || (product.image ? [product.image] : []);
 
   const benefits = product.features && product.features.length > 0 
     ? product.features 
@@ -43,7 +43,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             <div className={styles.rating}>
               <span>★★★★★</span>
               <span style={{ color: 'var(--foreground)' }}>{product.rating || '4.8'}</span>
-              <span className={styles.reviewsLink}>({product.reviews || Math.floor(Math.random() * 500) + 50} reviews)</span>
+              <span className={styles.reviewsLink}>({product.reviews || ((product.id.charCodeAt(0) || 1) * 17 % 500) + 50} reviews)</span>
             </div>
 
             <div className={styles.priceBlock}>
@@ -68,7 +68,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                 <span style={{ animation: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite', position: 'absolute', display: 'inline-flex', height: '100%', width: '100%', borderRadius: '50%', backgroundColor: 'var(--error)', opacity: 0.7 }}></span>
                 <span style={{ position: 'relative', display: 'inline-flex', borderRadius: '50%', height: '10px', width: '10px', backgroundColor: 'var(--error)' }}></span>
               </span>
-              <span><strong>{Math.floor(Math.random() * 15) + 5} people</strong> are viewing this right now</span>
+              <span><strong>{((product.id.charCodeAt(product.id.length - 1) || 1) * 7 % 15) + 5} people</strong> are viewing this right now</span>
             </div>
 
             <p style={{ color: 'var(--text-muted)', lineHeight: 1.6 }}>
@@ -108,11 +108,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Reviews Section */}
-            {(product as any).reviewsList && (product as any).reviewsList.length > 0 && (
+            {product.reviewsList && product.reviewsList.length > 0 && (
               <div style={{ marginTop: '3rem', borderTop: '1px solid var(--border)', paddingTop: '2rem' }}>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem' }}>Customer Reviews</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                  {(product as any).reviewsList.map((review: any) => (
+                  {product.reviewsList.map(review => (
                     <div key={review.id} style={{ padding: '1rem', backgroundColor: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
                         <div style={{ display: 'flex', color: 'var(--primary)', marginRight: '0.5rem' }}>

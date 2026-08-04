@@ -1,25 +1,18 @@
 import nodemailer from 'nodemailer';
+import { Order } from '@/types';
 
-// Configure the transport layer using SMTP
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.EMAIL_PORT || '587'),
-  secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
+  secure: process.env.EMAIL_SECURE === 'true',
   auth: {
-    user: process.env.EMAIL_USER || '', // Configure these in your .env
+    user: process.env.EMAIL_USER || '',
     pass: process.env.EMAIL_PASS || '', 
   },
 });
 
-/**
- * Sends an email notification
- * @param to Recipient email address
- * @param subject Subject of the email
- * @param html HTML content of the email
- */
 export async function sendEmail(to: string, subject: string, html: string) {
   try {
-    // If credentials aren't set up, just log the email to console for development
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       console.log('----------------------------------------------------');
       console.log(`[EMAIL MOCK] To: ${to}`);
@@ -44,7 +37,7 @@ export async function sendEmail(to: string, subject: string, html: string) {
   }
 }
 
-export function generateOrderPlacedEmailHtml(order: any) {
+export function generateOrderPlacedEmailHtml(order: Order) {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
       <h2 style="color: #4F46E5;">Thank you for your order!</h2>
@@ -53,7 +46,7 @@ export function generateOrderPlacedEmailHtml(order: any) {
       
       <h3 style="border-bottom: 1px solid #eee; padding-bottom: 8px;">Order Summary</h3>
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-        ${order.items.map((item: any) => `
+        ${order.items.map((item) => `
           <tr>
             <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
               ${item.quantity}x ${item.name}
@@ -80,7 +73,7 @@ export function generateOrderPlacedEmailHtml(order: any) {
   `;
 }
 
-export function generateOrderStatusUpdateEmailHtml(order: any, newStatus: string) {
+export function generateOrderStatusUpdateEmailHtml(order: Order, newStatus: string) {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
       <h2 style="color: #4F46E5;">Order Update</h2>

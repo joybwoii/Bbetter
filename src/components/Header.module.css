@@ -14,14 +14,18 @@
 
 .brand {
   font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.025em;
+  font-weight: 800;
+  letter-spacing: -0.05em;
   display: flex;
   align-items: center;
+  text-transform: uppercase;
 }
 
 .brandB {
-  color: var(--primary);
+  background: linear-gradient(135deg, var(--accent) 0%, #8a7322 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .links {
@@ -32,21 +36,23 @@
 
 .link {
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
   padding-bottom: 0.2rem;
-  border-bottom: 2px solid transparent;
-  transition: color var(--transition-fast), border-color var(--transition-fast);
+  border-bottom: 1px solid transparent;
+  transition: all var(--transition-fast);
 }
 
 .link:hover {
-  color: var(--primary);
+  color: var(--foreground);
 }
 
 .activeLink {
   color: var(--foreground);
   font-weight: 600;
-  border-bottom: 2px solid var(--primary);
+  border-bottom: 1px solid var(--foreground);
 }
 
 .actions {

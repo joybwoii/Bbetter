@@ -19,14 +19,12 @@ export async function registerUser(formData: FormData) {
   }
 
   try {
-    // 1. Create user in Firebase Auth
     const userRecord = await adminAuth.createUser({
       email,
       password,
       displayName: fullName || `${firstName} ${lastName}`.trim(),
     });
 
-    // 2. Add user profile to Firestore
     await adminDb.collection('users').doc(userRecord.uid).set({
       uid: userRecord.uid,
       email,
@@ -39,19 +37,18 @@ export async function registerUser(formData: FormData) {
     });
 
     return { success: true, uid: userRecord.uid };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Registration error:', error);
-    if (error.code === 'auth/email-already-exists') {
+    if (error instanceof Error && 'code' in error && error.code === 'auth/email-already-exists') {
       return { error: 'This email is already registered' };
     }
-    return { error: error.message || 'Failed to register' };
+    return { error: error instanceof Error ? error.message : 'Failed to register' };
   }
 }
 
 export async function loginUser(idToken: string) {
-  // This would be called from the client after sign-in to set a session cookie
   const cookieStore = await cookies();
-  const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
+  const expiresIn = 60 * 60 * 24 * 5 * 1000; 
 
   try {
     const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
@@ -84,8 +81,6 @@ export async function verifyAdmin() {
 
   try {
     const decodedClaims = await adminAuth.verifySessionCookie(session, true);
-    
-    // Fetch user document from Firestore to verify role
     const userDoc = await adminDb.collection('users').doc(decodedClaims.uid).get();
     
     if (!userDoc.exists) {
@@ -94,21 +89,12 @@ export async function verifyAdmin() {
     
     const userData = userDoc.data();
     
-    // Temporarily bypassing strict email and role check so the owner can access the dashboard.
-    // In production, you should re-enable this and ensure your account has the 'ADMIN' role.
-    /*
-    if (userData?.role !== 'ADMIN' || decodedClaims.email !== 'adminbbetter@gmail.com') {
-      throw new Error('Unauthorized: Access denied');
-    }
-    */
-    
     return {
       uid: decodedClaims.uid,
       email: decodedClaims.email,
-      role: userData.role
+      role: userData?.role
     };
-  } catch (error: any) {
-    console.error('Session verification failed:', error);
+  } catch {
     throw new Error('Unauthorized: Invalid session');
   }
 }

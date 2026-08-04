@@ -31,15 +31,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Load cart from localStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('bbetter_cart');
-    if (savedCart) {
-      try {
-        setCart(JSON.parse(savedCart));
-      } catch (e) {
-        console.error('Failed to parse cart from localStorage', e);
+    const timer = setTimeout(() => {
+      const savedCart = localStorage.getItem('bbetter_cart');
+      if (savedCart) {
+        try {
+          setCart(JSON.parse(savedCart));
+        } catch (e) {
+          console.error('Failed to parse cart from localStorage', e);
+        }
       }
-    }
-    setIsInitialized(true);
+      setIsInitialized(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // Save cart to localStorage on change

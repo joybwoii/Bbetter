@@ -18,17 +18,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!auth || typeof auth.onAuthStateChanged !== 'function') {
-      setLoading(false);
-      return;
-    }
+    const timer = setTimeout(() => {
+      if (!auth || typeof onAuthStateChanged !== 'function') {
+        setLoading(false);
+        return;
+      }
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        setUser(user);
+        setLoading(false);
+      });
 
-    return () => unsubscribe();
+      return () => unsubscribe();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   return (

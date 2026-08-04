@@ -1,38 +1,7 @@
 'use server';
 import { adminDb } from '../firebase/admin';
-
-export interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  mrp?: number;
-  image?: string;
-  category: string;
-  tag?: string;
-  rating?: number;
-  reviews?: number;
-  stock?: number;
-  features?: string[];
-  specs?: Record<string, string>;
-  isActive?: boolean;
-  isCODEnabled?: boolean;
-  isOnlinePaymentEnabled?: boolean;
-  reviewsList?: {
-    id: string;
-    rating: number;
-    description: string;
-    image?: string;
-    createdAt: string;
-  }[];
-}
-
-export interface Category {
-  id: string;
-  name: string;
-  description?: string;
-  image?: string;
-}
+import { Product, Category, Order } from '@/types';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export async function getProducts(category?: string): Promise<Product[]> {
   try {
@@ -42,16 +11,15 @@ export async function getProducts(category?: string): Promise<Product[]> {
       return [];
     }
 
-    let products = snapshot.docs.map((doc: any) => ({
+    let products = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as Product[];
 
-    // Filter in-memory to prevent complex composite index errors
-    products = products.filter((p: any) => p.isActive !== false);
+    products = products.filter(p => p.isActive !== false);
 
     if (category) {
-      products = products.filter((p: any) => p.category === category);
+      products = products.filter(p => p.category === category);
     }
 
     return products;
@@ -65,9 +33,8 @@ export async function getProductById(id: string): Promise<Product | null> {
   try {
     const doc = await adminDb.collection('products').doc(id).get();
     if (doc.exists) {
-      const productData = doc.data() as any;
+      const productData = doc.data();
       
-      // Fetch reviews subcollection
       const reviewsSnapshot = await adminDb.collection('products').doc(id).collection('reviews').orderBy('createdAt', 'desc').get();
       const reviewsList = reviewsSnapshot.docs.map(reviewDoc => ({
         id: reviewDoc.id,
@@ -88,15 +55,12 @@ export async function getProductById(id: string): Promise<Product | null> {
   }
 }
 
-import { unstable_noStore as noStore } from 'next/cache';
-
 export async function getCategories(): Promise<Category[]> {
   noStore();
   try {
     const snapshot = await adminDb.collection('categories').get();
     
     if (snapshot.empty) {
-      // Auto-seed default categories if empty
       const defaultCategories = [
         { id: 'men', name: 'Men', description: 'Exclusive fragrances for Men' },
         { id: 'women', name: 'Women', description: 'Elegant perfumes for Women' }
@@ -112,10 +76,10 @@ export async function getCategories(): Promise<Category[]> {
       });
       await batch.commit();
       
-      return defaultCategories;
+      return defaultCategories as Category[];
     }
 
-    let categories = snapshot.docs.map((doc: any) => ({
+    let categories = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as Category[];
@@ -126,40 +90,39 @@ export async function getCategories(): Promise<Category[]> {
       return [
         { id: 'men', name: 'Men', description: 'Exclusive fragrances for Men' },
         { id: 'women', name: 'Women', description: 'Elegant perfumes for Women' }
-      ];
+      ] as Category[];
     }
 
     return categories;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Firestore getCategories error:", error);
     return [
-      { id: 'error', name: `Error: ${error.message || 'Unknown error'}`, description: 'Debug error category' }
-    ];
+      { id: 'error', name: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`, description: 'Debug error category' }
+    ] as Category[];
   }
 }
 
-export async function getPublicOrderById(orderId: string, email: string) {
+export async function getPublicOrderById(orderId: string, email: string): Promise<Order | null> {
   try {
     const doc = await adminDb.collection('orders').doc(orderId).get();
     if (!doc.exists) return null;
     
-    const data = doc.data();
-    // Verify email matches to prevent unauthorized scraping
-    if (data?.customer?.email !== email && data?.customerEmail !== email) {
+    const data = doc.data() as Partial<Order>;
+    if (data?.shipping?.email !== email) {
       return null;
     }
     
     return {
       id: doc.id,
       ...data
-    };
+    } as Order;
   } catch (error) {
     console.error("Firestore getPublicOrderById error:", error);
     return null;
   }
 }
 
-export async function getUserOrdersByEmail(email: string) {
+export async function getUserOrdersByEmail(email: string): Promise<Order[]> {
   try {
     const snapshot = await adminDb.collection('orders')
       .where('shipping.email', '==', email)
@@ -172,10 +135,9 @@ export async function getUserOrdersByEmail(email: string) {
     const orders = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    }));
+    } as Order));
 
-    // Sort in memory to avoid composite index requirement
-    orders.sort((a: any, b: any) => {
+    orders.sort((a, b) => {
       const timeA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : (new Date(a.createdAt).getTime() || 0);
       const timeB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : (new Date(b.createdAt).getTime() || 0);
       return timeB - timeA;

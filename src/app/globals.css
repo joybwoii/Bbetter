@@ -1,21 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Core Colors */
+  /* Premium Core Colors - Sophisticated Light Theme */
   --background: #ffffff;
-  --foreground: #0f172a; /* Slightly darker slate for better contrast */
-  --surface: #f8fafc;
-  --surface-hover: #f1f5f9;
-  --border: #e2e8f0;
+  --foreground: #0a0a0a;
+  --surface: #fafafa;
+  --surface-hover: #f5f5f5;
+  --border: #eaeaea;
 
-  /* Brand / Bbetter Purple */
-  --primary: #6366f1; /* Indigo instead of deep purple for a cleaner feel */
-  --primary-hover: #4f46e5;
+  /* Brand Colors */
+  --primary: #000000;
+  --primary-hover: #222222;
   --primary-foreground: #ffffff;
+  --accent: #d4af37; /* Luxurious Gold */
 
   /* Text variants */
-  --text-muted: #64748b;
-  --text-accent: #6366f1;
+  --text-muted: #737373;
+  --text-accent: #d4af37;
 
   /* Utility Colors */
   --success: #10b981;
@@ -23,23 +24,24 @@
   --warning: #f59e0b;
 
   /* Functional */
-  --radius-sm: 0.375rem;
+  --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+  --radius-lg: 1rem;
   --radius-full: 9999px;
   
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.04), 0 4px 6px -4px rgb(0 0 0 / 0.04);
-  --shadow-glow: 0 0 15px rgba(99, 102, 241, 0.2);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 20px rgba(212, 175, 55, 0.3);
 
   /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.4);
 
   /* Animation */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 700ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * {
@@ -90,9 +92,10 @@ button {
 /* Glassmorphism Classes */
 .glass {
   background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Text Classes */
@@ -100,14 +103,14 @@ button {
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-image: linear-gradient(135deg, var(--foreground) 0%, var(--primary) 100%);
+  background-image: linear-gradient(135deg, var(--foreground) 0%, #4a4a4a 100%);
 }
 
-.text-gradient-purple {
+.text-gradient-gold {
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-image: linear-gradient(135deg, var(--primary) 0%, #d8b4fe 100%);
+  background-image: linear-gradient(135deg, var(--accent) 0%, #b8972e 100%);
 }
 
 /* Base interactive */
@@ -117,21 +120,25 @@ button {
   justify-content: center;
   gap: 0.5rem;
   font-weight: 500;
-  border-radius: var(--radius-md);
-  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-full);
+  padding: 0.75rem 2rem;
   transition: all var(--transition-fast);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.875rem;
 }
 
 .btn-primary {
   background-color: var(--primary);
   color: var(--primary-foreground);
   box-shadow: var(--shadow-md);
+  border: 1px solid transparent;
 }
 
 .btn-primary:hover {
   background-color: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-glow);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
 .btn-outline {
@@ -141,9 +148,9 @@ button {
 }
 
 .btn-outline:hover {
-  background-color: var(--surface);
-  border-color: var(--primary);
-  color: var(--primary);
+  background-color: var(--foreground);
+  border-color: var(--foreground);
+  color: var(--background);
 }
 
 /* Layout helpers */
@@ -181,12 +188,23 @@ button {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(20px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
 
 .animate-fade-in {
-  animation: fadeIn var(--transition-normal) ease-out forwards;
+  animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
 }
 
 /* Spinner Animation */

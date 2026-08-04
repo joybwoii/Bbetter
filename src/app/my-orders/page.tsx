@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export default function MyOrdersPage() {
   const { user, loading: authLoading } = useAuth();
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<import('@/types').Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -89,7 +89,7 @@ export default function MyOrdersPage() {
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
                 <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--text-muted)' }}>ITEMS</h3>
                 <div style={{ display: 'grid', gap: '0.75rem' }}>
-                  {order.items?.map((item: any, index: number) => (
+                  {order.items?.map((item: import('@/types').OrderItem, index: number) => (
                     <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
                       <div style={{ display: 'flex', gap: '0.75rem' }}>
                         <span style={{ fontWeight: 500, color: 'var(--text-muted)' }}>{item.quantity}x</span>

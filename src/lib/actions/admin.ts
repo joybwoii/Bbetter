@@ -4,6 +4,7 @@ import { adminDb, adminStorage } from '../firebase/admin';
 import { revalidatePath } from 'next/cache';
 import { verifyAdmin } from './auth';
 import { sendEmail, generateOrderStatusUpdateEmailHtml } from '../email';
+import { Product, Order, UserProfile, Category } from '@/types';
 
 export async function getDashboardStats() {
   try {
@@ -13,16 +14,16 @@ export async function getDashboardStats() {
     
     // Fetch all and sort in memory to avoid any index issues
     const allOrdersSnapTemp = await adminDb.collection('orders').get();
-    let finalOrders = allOrdersSnapTemp.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    finalOrders.sort((a: any, b: any) => {
+    let finalOrders = allOrdersSnapTemp.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+    finalOrders.sort((a, b) => {
       const timeA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : (new Date(a.createdAt).getTime() || 0);
       const timeB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : (new Date(b.createdAt).getTime() || 0);
       return timeB - timeA;
     });
     
     const recentUsersSnapTemp = await adminDb.collection('users').get();
-    let recentUsers = recentUsersSnapTemp.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    recentUsers.sort((a: any, b: any) => {
+    let recentUsers = recentUsersSnapTemp.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile));
+    recentUsers.sort((a, b) => {
       const timeA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : (new Date(a.createdAt).getTime() || 0);
       const timeB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : (new Date(b.createdAt).getTime() || 0);
       return timeB - timeA;
@@ -31,19 +32,17 @@ export async function getDashboardStats() {
     finalOrders = finalOrders.slice(0, 5);
     recentUsers = recentUsers.slice(0, 5);
 
-    // For total sales and active orders, we'd ideally use an aggregation query, but for now we'll do a basic fetch or keep it simple.
-    // Since we need total sales across ALL orders, let's fetch all orders (or implement an aggregation if possible).
     const allOrdersSnap = await adminDb.collection('orders').get();
-    const allOrders = allOrdersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const allOrders = allOrdersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
 
     let totalSales = 0;
     let activeOrders = 0;
     
-    allOrders.forEach((order: any) => {
-      if (order.status !== 'CANCELLED') {
+    allOrders.forEach((order) => {
+      if (order.status !== 'Cancelled') {
         totalSales += order.total || 0;
       }
-      if (['PENDING', 'PROCESSING', 'SHIPPED'].includes(order.status?.toUpperCase())) {
+      if (['Pending', 'Processing', 'Shipped'].includes(order.status || '')) {
         activeOrders++;
       }
     });
@@ -51,7 +50,8 @@ export async function getDashboardStats() {
     return {
       totalSales,
       activeOrders,
-      totalCustomers: usersSnap.data()?.count || 0,
+      totalCustomers: usersSnap.data().count || 0,
+      totalProducts: productsSnap.data().count || 0,
       lowStockItems: 3, 
       recentOrders: finalOrders,
       recentUsers: recentUsers,
@@ -62,6 +62,7 @@ export async function getDashboardStats() {
       totalSales: 0,
       activeOrders: 0,
       totalCustomers: 0,
+      totalProducts: 0,
       lowStockItems: 0,
       recentOrders: [],
       recentUsers: [],
@@ -69,24 +70,26 @@ export async function getDashboardStats() {
   }
 }
 
-export async function getProducts() {
+export async function getProducts(): Promise<Product[]> {
   try {
     await verifyAdmin();
     const snap = await adminDb.collection('products').get();
-    const products = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const products = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
     return products;
   } catch (error) {
+    console.error(error);
     return [];
   }
 }
 
-export async function getUsers() {
+export async function getUsers(): Promise<UserProfile[]> {
   try {
     await verifyAdmin();
     const snap = await adminDb.collection('users').get();
-    const users = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const users = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile));
     return users;
   } catch (error) {
+    console.error(error);
     return [];
   }
 }
@@ -118,12 +121,11 @@ async function processImage(imageString: string): Promise<string> {
     return `https://storage.googleapis.com/${bucket.name}/${filename}`;
   } catch (err) {
     console.error('Error uploading image to storage:', err);
-    // Fallback to base64 if storage is not configured properly
     return imageString;
   }
 }
 
-export async function createProduct(data: any) {
+export async function createProduct(data: Partial<Product>) {
   try {
     await verifyAdmin();
     if (data.image) {
@@ -136,19 +138,20 @@ export async function createProduct(data: any) {
       createdAt: new Date().toISOString()
     });
     
-    // Instant cache invalidation
     revalidatePath('/');
-    revalidatePath(`/category/${data.category}`);
+    if (data.category) {
+      revalidatePath(`/category/${data.category}`);
+    }
     revalidatePath('/admin/products');
     
     return { success: true, id: docRef.id };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating product:', error);
-    return { error: error.message || 'Failed to create product' };
+    return { error: error instanceof Error ? error.message : 'Failed to create product' };
   }
 }
 
-export async function updateProduct(id: string, data: any) {
+export async function updateProduct(id: string, data: Partial<Product>) {
   try {
     await verifyAdmin();
     if (data.image) {
@@ -160,16 +163,17 @@ export async function updateProduct(id: string, data: any) {
       updatedAt: new Date().toISOString()
     });
     
-    // Instant cache invalidation
     revalidatePath('/');
-    revalidatePath(`/category/${data.category}`);
+    if (data.category) {
+      revalidatePath(`/category/${data.category}`);
+    }
     revalidatePath(`/product/${id}`);
     revalidatePath('/admin/products');
     
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating product:', error);
-    return { error: error.message || 'Failed to update product' };
+    return { error: error instanceof Error ? error.message : 'Failed to update product' };
   }
 }
 
@@ -181,7 +185,6 @@ export async function deleteProduct(id: string) {
     
     await adminDb.collection('products').doc(id).delete();
     
-    // Instant cache invalidation
     revalidatePath('/');
     if (data && data.category) {
       revalidatePath(`/category/${data.category}`);
@@ -190,9 +193,9 @@ export async function deleteProduct(id: string) {
     revalidatePath('/admin/products');
     
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting product:', error);
-    return { error: error.message || 'Failed to delete product' };
+    return { error: error instanceof Error ? error.message : 'Failed to delete product' };
   }
 }
 
@@ -207,7 +210,6 @@ export async function toggleProductStatus(id: string, currentStatus: boolean) {
       updatedAt: new Date().toISOString()
     });
 
-    // Purge related route caches instantly
     revalidatePath('/');
     if (data && data.category) {
       revalidatePath(`/category/${data.category}`);
@@ -216,38 +218,37 @@ export async function toggleProductStatus(id: string, currentStatus: boolean) {
     revalidatePath('/admin/products');
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error toggling product status:', error);
-    return { error: error.message || 'Failed to toggle status' };
+    return { error: error instanceof Error ? error.message : 'Failed to toggle status' };
   }
 }
 
-export async function createCategory(data: any) {
+export async function createCategory(data: Partial<Category>) {
   try {
     await verifyAdmin();
-    const id = data.id || data.name.toLowerCase().replace(/\s+/g, '-');
+    const id = data.id || (data.name ? data.name.toLowerCase().replace(/\s+/g, '-') : '');
     await adminDb.collection('categories').doc(id).set({
       ...data,
       id,
       createdAt: new Date().toISOString()
     });
     
-    // Invalidate entire layout cache so navbar and forms update
     revalidatePath('/', 'layout');
     
     return { success: true, id };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating category:', error);
-    return { error: error.message || 'Failed to create category' };
+    return { error: error instanceof Error ? error.message : 'Failed to create category' };
   }
 }
 
-export async function getOrders() {
+export async function getOrders(): Promise<Order[]> {
   try {
     await verifyAdmin();
     const snap = await adminDb.collection('orders').get();
-    const orders = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    orders.sort((a: any, b: any) => {
+    const orders = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+    orders.sort((a, b) => {
       const timeA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : (new Date(a.createdAt).getTime() || 0);
       const timeB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : (new Date(b.createdAt).getTime() || 0);
       return timeB - timeA;
@@ -259,15 +260,16 @@ export async function getOrders() {
   }
 }
 
-export async function getOrderById(id: string) {
+export async function getOrderById(id: string): Promise<Order | null> {
   try {
     await verifyAdmin();
     const doc = await adminDb.collection('orders').doc(id).get();
     if (!doc.exists) {
       return null;
     }
-    return { id: doc.id, ...doc.data() };
+    return { id: doc.id, ...doc.data() } as Order;
   } catch (error) {
+    console.error(error);
     return null;
   }
 }
@@ -281,10 +283,9 @@ export async function updateOrderStatus(id: string, status: string) {
       updatedAt: new Date().toISOString()
     });
 
-    // Fetch the order data to send email
     const doc = await docRef.get();
     if (doc.exists) {
-      const order = { id: doc.id, ...doc.data() } as any;
+      const order = { id: doc.id, ...doc.data() } as Order;
       if (order.shipping?.email) {
         await sendEmail(
           order.shipping.email,
@@ -295,9 +296,9 @@ export async function updateOrderStatus(id: string, status: string) {
     }
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating order status:', error);
-    return { error: error.message || 'Failed to update status' };
+    return { error: error instanceof Error ? error.message : 'Failed to update status' };
   }
 }
 
@@ -314,6 +315,7 @@ export async function getSettings() {
       gateway: 'razorpay'
     };
   } catch (error) {
+    console.error(error);
     return {
       storeName: 'Bbetter',
       supportEmail: 'support@bbetter.com',
@@ -324,7 +326,7 @@ export async function getSettings() {
   }
 }
 
-export async function saveSettings(data: any) {
+export async function saveSettings(data: Record<string, unknown>) {
   try {
     await verifyAdmin();
     await adminDb.collection('settings').doc('store').set({
@@ -332,13 +334,13 @@ export async function saveSettings(data: any) {
       updatedAt: new Date().toISOString()
     }, { merge: true });
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error saving settings:', error);
-    return { error: error.message || 'Failed to save settings' };
+    return { error: error instanceof Error ? error.message : 'Failed to save settings' };
   }
 }
 
-export async function addReviewToProduct(productId: string, reviewData: any) {
+export async function addReviewToProduct(productId: string, reviewData: { rating: string, description: string, image?: string }) {
   try {
     await verifyAdmin();
     const docRef = adminDb.collection('products').doc(productId);
@@ -361,9 +363,8 @@ export async function addReviewToProduct(productId: string, reviewData: any) {
 
     reviewsList.push(newReview);
     
-    // Update total reviews and average rating
     const totalReviews = reviewsList.length;
-    const avgRating = reviewsList.reduce((acc: number, curr: any) => acc + curr.rating, 0) / totalReviews;
+    const avgRating = reviewsList.reduce((acc: number, curr: { rating: number }) => acc + curr.rating, 0) / totalReviews;
 
     await docRef.update({
       reviewsList,
@@ -379,8 +380,8 @@ export async function addReviewToProduct(productId: string, reviewData: any) {
     revalidatePath('/admin/products');
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error adding review:', error);
-    return { error: error.message || 'Failed to add review' };
+    return { error: error instanceof Error ? error.message : 'Failed to add review' };
   }
 }

@@ -12,11 +12,13 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(1);
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [placedOrderId, setPlacedOrderId] = useState('');
 
   // Calculate available payment methods based on cart items
   // Default to true, but if ANY item in cart has the flag set to false explicitly, disable it.
-  const isCODAllowed = cart.length > 0 && cart.every((item: any) => item.isCODEnabled !== false);
-  const isOnlineAllowed = cart.length > 0 && cart.every((item: any) => item.isOnlinePaymentEnabled !== false);
+  const isCODAllowed = cart.length > 0 && cart.every(item => item.isCODEnabled !== false);
+  const isOnlineAllowed = cart.length > 0 && cart.every(item => item.isOnlinePaymentEnabled !== false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -38,10 +40,10 @@ export default function CheckoutPage() {
   };
 
   useEffect(() => {
-    if (cart.length === 0) {
+    if (cart.length === 0 && !orderSuccess) {
       router.replace('/cart');
     }
-  }, [cart, router]);
+  }, [cart, router, orderSuccess]);
 
   const handlePayment = async () => {
     // Validate Mobile Number
@@ -76,14 +78,82 @@ export default function CheckoutPage() {
       }
 
       if (formData.paymentMethod === 'online' && orderData.orderId) {
-        // Here you would integrate Razorpay or your preferred payment gateway
-        // For now, since no gateway is strictly set up in the checkout logic, we'll simulate success
-        alert('Online Payment Integration Pending - Simulating Success');
+        const rzpOrderRes = await fetch('/api/razorpay/create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: cartTotal })
+        });
+        const rzpOrderData = await rzpOrderRes.json();
+        
+        if (rzpOrderData.error) {
+          alert('Failed to initialize payment gateway.');
+          setIsProcessing(false);
+          return;
+        }
+
+        const options = {
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
+          amount: rzpOrderData.amount,
+          currency: rzpOrderData.currency,
+          name: "Bbetter",
+          description: "Premium Lifestyle & Scents",
+          order_id: rzpOrderData.id,
+          handler: async function (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string; }) {
+            try {
+              const verifyRes = await fetch('/api/razorpay/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  local_order_id: orderData.documentId
+                })
+              });
+              const verifyData = await verifyRes.json();
+              if (verifyData.success) {
+                if (clearCart) clearCart();
+                setPlacedOrderId(orderData.documentId);
+                setOrderSuccess(true);
+                setIsProcessing(false);
+              } else {
+                alert('Payment verification failed.');
+                setIsProcessing(false);
+              }
+            } catch (err) {
+              alert('Error verifying payment.');
+              setIsProcessing(false);
+            }
+          },
+          prefill: {
+            name: `${formData.firstName} ${formData.lastName}`,
+            email: formData.email,
+            contact: formData.phone
+          },
+          theme: {
+            color: "#d4af37" 
+          },
+          modal: {
+            ondismiss: function() {
+              setIsProcessing(false);
+            }
+          }
+        };
+
+        const rzp1 = new (window as unknown as { Razorpay: new (options: unknown) => { on: (event: string, handler: (resp: { error: { description: string } }) => void) => void; open: () => void; } }).Razorpay(options);
+        rzp1.on('payment.failed', function (response: { error: { description: string } }) {
+          alert('Payment Failed: ' + response.error.description);
+          setIsProcessing(false);
+        });
+        rzp1.open();
+        return; 
       }
 
       if (orderData.success) {
           if (clearCart) clearCart();
-          router.push(`/checkout/success?orderId=${orderData.documentId}`);
+          setPlacedOrderId(orderData.documentId);
+          setOrderSuccess(true);
+          setIsProcessing(false);
       }
 
     } catch (err) {
@@ -93,10 +163,11 @@ export default function CheckoutPage() {
     }
   };
 
-  if (cart.length === 0) return null;
+  if (cart.length === 0 && !orderSuccess) return null;
 
   return (
     <div className={styles.checkoutContainer}>
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       <div className={styles.checkoutGrid}>
         
         {/* Left Column: Forms */}
@@ -356,6 +427,28 @@ export default function CheckoutPage() {
         </div>
 
       </div>
+
+      {orderSuccess && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}>
+          <div style={{ backgroundColor: 'var(--surface)', padding: '3rem 2rem', borderRadius: 'var(--radius-lg)', maxWidth: '450px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid var(--border)', animation: 'slide-up 0.4s ease-out' }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem auto', boxShadow: '0 10px 25px rgba(212, 175, 55, 0.4)' }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--foreground)' }}>Order Placed!</h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', lineHeight: 1.6 }}>Your order has been successfully placed. We are preparing it for shipment.</p>
+            {placedOrderId && (
+              <div style={{ padding: '1rem', backgroundColor: 'var(--surface-hover)', borderRadius: 'var(--radius-md)', marginBottom: '2rem', border: '1px dashed var(--border)' }}>
+                <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Order ID</span>
+                <p style={{ fontWeight: 600, fontFamily: 'monospace', fontSize: '1.125rem', color: 'var(--foreground)' }}>{placedOrderId}</p>
+              </div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <Link href={`/track-order?id=${placedOrderId}`} className="btn btn-primary">Track Order</Link>
+              <Link href="/" className="btn btn-outline">Continue Shopping</Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

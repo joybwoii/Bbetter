@@ -21,34 +21,35 @@ export default async function Home() {
 
   return (
     <div className={styles.main}>
-      {/* Hero Section */}
       <section className={styles.hero}>
-        <Image
-          src="/hero_perfume_black.png"
-          alt="Premium CR7 style perfumes and fragrances"
-          fill
-          style={{ objectFit: 'cover', objectPosition: 'center' }}
-          className={styles.heroImage}
-          priority
-          sizes="100vw"
-        />
-        <div className={styles.heroOverlay}></div>
         <div className={styles.heroContent}>
-          <h1 className={`${styles.heroTitle} animate-fade-in`} style={{ color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
+          <h1 className={`${styles.heroTitle} animate-slide-up`}>
             Discover Your Signature Scent. <br />
-            <span style={{ color: '#ffffff' }}>Live Beautifully.</span>
+            <span>Live Beautifully.</span>
           </h1>
-          <p className={`${styles.heroSubtitle} animate-fade-in`} style={{ animationDelay: '100ms', color: '#ffffff', textShadow: '0 1px 5px rgba(0,0,0,0.8)' }}>
+          <p className={`${styles.heroSubtitle} animate-slide-up`} style={{ animationDelay: '100ms' }}>
             Explore our exclusive collection of premium fragrances crafted for an unforgettable presence and lasting impression.
           </p>
-          <div className={`${styles.heroActions} animate-fade-in`} style={{ animationDelay: '200ms' }}>
+          <div className={`${styles.heroActions} animate-slide-up`} style={{ animationDelay: '200ms' }}>
             <Link href="#categories" className="btn btn-primary">
               Shop Now
             </Link>
-            <Link href="#trending" className="btn btn-outline" style={{ borderColor: '#ffffff', color: '#ffffff', backgroundColor: 'rgba(0,0,0,0.3)', textShadow: 'none' }}>
+            <Link href="#trending" className="btn btn-outline">
               Trending
             </Link>
           </div>
+        </div>
+
+        <div className={styles.heroImageContainer}>
+          <Image
+            src="/hero_perfume_black.png"
+            alt="Élégance Noir perfume"
+            fill
+            style={{ objectFit: 'contain', objectPosition: 'center', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5))' }}
+            priority
+            sizes="(max-width: 900px) 100vw, 50vw"
+            className="animate-fade-in"
+          />
         </div>
       </section>
 
@@ -60,7 +61,7 @@ export default async function Home() {
         </div>
         
         <div className={styles.categoriesGrid}>
-          {displayCategories.map((category: any) => (
+          {displayCategories.map(category => (
             <Link href={`/category/${category.id}`} key={category.id} className={styles.categoryCard}>
               {CATEGORY_IMAGES[category.id] && (
                 <Image
@@ -91,7 +92,7 @@ export default async function Home() {
         </div>
 
         <div className={styles.productsGrid}>
-          {displayProducts.map((product: any) => (
+          {displayProducts.map(product => (
             <Link href={`/product/${product.id}`} key={product.id} className={styles.productCard}>
               <div className={styles.productImageContainer}>
                 {product.image && (

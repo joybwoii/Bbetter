@@ -13,9 +13,22 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Bbetter | Premium Smart Lifestyle & Utilities",
-  description: "Problem-solving products for kitchen, home organization, and smart lifestyle gadgets.",
-  keywords: ["ecommerce", "smart gadgets", "home organization", "kitchen utilities", "Bbetter"],
+  title: "Bbetter | Premium Lifestyle Essentials & Signature Scents",
+  description: "Discover our curated collection of problem-solving utilities, smart gadgets, and exclusive premium fragrances designed for an unforgettable presence.",
+  keywords: ["ecommerce", "premium fragrances", "smart lifestyle", "luxury", "Bbetter"],
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    url: "https://bbetter.in",
+    title: "Bbetter | Premium Lifestyle Essentials",
+    description: "Discover our curated collection of problem-solving utilities and exclusive premium fragrances.",
+    siteName: "Bbetter"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Bbetter | Premium Lifestyle",
+    description: "Discover our curated collection of premium fragrances and smart lifestyle gadgets.",
+  },
 };
 
 export const viewport: Viewport = {

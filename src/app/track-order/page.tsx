@@ -1,12 +1,13 @@
 "use client";
 import React, { useState } from 'react';
 import { getPublicOrderById } from '@/lib/actions/firestore';
+import { Order } from '@/types';
 
 export default function TrackOrderPage() {
   const [orderId, setOrderId] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState('');
 
   const handleTrack = async (e: React.FormEvent) => {
@@ -22,7 +23,7 @@ export default function TrackOrderPage() {
       } else {
         setError('Order not found. Please check your Order ID and Email.');
       }
-    } catch (err) {
+    } catch {
       setError('Something went wrong. Please try again.');
     }
     
@@ -119,7 +120,7 @@ export default function TrackOrderPage() {
             <div style={{ marginTop: '1.5rem' }}>
               <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Items</h3>
               <div style={{ display: 'grid', gap: '1rem' }}>
-                {order.items?.map((item: any, index: number) => (
+                {order.items?.map((item, index: number) => (
                   <div key={index} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '1rem', borderBottom: index < order.items.length - 1 ? '1px solid var(--border)' : 'none' }}>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                       <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>{item.quantity}x</span>
